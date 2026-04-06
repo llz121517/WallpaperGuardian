@@ -80,7 +80,7 @@ def main():
         remote_host = config_data.get('remote_host', '')
         current_version = config_data.get('current_version', '')
         
-        print(f"[UPDATE] 远程主机: {remote_host}")
+        print(f"[UPDATE] 服务器地址: {remote_host}")
         print(f"[UPDATE] 当前版本: {current_version}")
 
         if not remote_host:
@@ -92,12 +92,14 @@ def main():
             import urllib.request
             import urllib.error
 
+            # 拼接 updater 接口地址
+            updater_url = f"{remote_host}/updater"
             post_data = json.dumps(config_data).encode('utf-8')
-            print(f"[UPDATE] 发送 POST 请求到: {remote_host}")
+            print(f"[UPDATE] 发送 POST 请求到: {updater_url}")
             print(f"[UPDATE] 请求数据: {post_data.decode('utf-8')}")
             
             req = urllib.request.Request(
-                remote_host,
+                updater_url,
                 data=post_data,
                 headers={'Content-Type': 'application/json'},
                 method='POST'

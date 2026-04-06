@@ -33,6 +33,25 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/) stand
 
 ---
 
+## [1.1.1] - 2026-04-07
+
+### Changed
+
+- 优化更新服务 URL 配置方式
+  - 配置文件仅存储基础服务器地址（如 `http://localhost:8000`）
+  - 客户端自动拼接 `/updater` 和 `/download/{version}` 路径
+  - 简化配置，避免路径错误
+- 改进下载地址拼接逻辑
+  - 移除复杂的 URL 解析代码
+  - 统一使用基础 URL + 路径的方式
+
+### Fixed
+
+- 修复下载 URL 拼接错误导致的 404 问题
+- 修复服务端接口路径不匹配问题
+
+---
+
 ## [1.1.0] - 2026-04-06
 
 ### Added

@@ -9,8 +9,8 @@ import json
 
 # ==================== 配置区 ====================
 # 以下变量用于生成 config.json 模板
-REMOTE_HOST = "http://your-server.com/api/check"  # 默认服务地址
-CURRENT_VERSION = "1.0.0"  # 初始版本号
+REMOTE_HOST = "http://localhost:8000"  # 基础服务器地址（不含路径）
+CURRENT_VERSION = "1.1.1"  # 当前版本号
 # ===============================================
 
 
