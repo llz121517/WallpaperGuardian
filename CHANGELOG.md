@@ -1,35 +1,87 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-This changelog follows the [Keep a Changelog](https://keepachangelog.com/) standard, and version numbers follow [Semantic Versioning (SemVer)](https://semver.org/lang/zh-CN/).
+This changelog follows the [Keep a Changelog](https://keepachangelog.com/) standard.
 
 所有重要变更将记录在此文件中。
-本 changelog 遵循 [Keep a Changelog](https://keepachangelog.com/) 标准，版本号遵循 [语义化版本（SemVer）](https://semver.org/lang/zh-CN/)。
+本 changelog 遵循 [Keep a Changelog](https://keepachangelog.com/) 标准。
 
-## [Unreleased] - 未发布
+**版本号策略**：
+- v1.1.1 及之前：使用语义化版本号（SemVer）
+- v1.2.0 及之后：使用 大版本.小版本.补丁 格式
 
-> 此部分用于记录**已合并但尚未发布**的变更。发布新版本时，将其内容移入新版本条目并清空。
+---
+
+## [1.2.0] - 2026-04-07
 
 ### Added
-- （新增功能）
+
+#### 日志系统全面升级
+- 统一使用 Python logging 模块替代 print
+  - 结构化日志输出，支持级别分类
+  - 所有调试信息改为 logging 实现
+  - 根据语义正确使用日志级别（DEBUG/INFO/WARNING/ERROR）
+- 控制台彩色日志输出
+  - DEBUG: 青色
+  - INFO: 绿色
+  - WARNING: 黄色
+  - ERROR: 红色
+  - CRITICAL: 亮红色
+  - 级别名称和方括号都有颜色
+- UPDATE 日志特殊标识
+  - [UPDATE] 前缀显示紫色，便于区分来源
+  - 主程序智能识别 update.py 日志内容自动判断级别
+  - 关键词匹配：失败/错误/异常 → ERROR，警告/不存在 → WARNING
+- 日志文件管理
+  - 按日期分割文件名：main_YYYYMMDD.log
+  - UTF-8 编码，确保中文正常显示
+  - 打包后写入 exe 目录/logs/ 文件夹
+  - 开发环境同时输出到控制台和文件
+- 自动日志清理功能
+  - 启动时自动清理 30 天前的旧日志
+  - 智能识别日志文件名中的日期
+  - 安全的异常处理，单个文件失败不影响其他
+  - 详细的清理过程记录
+
+#### 日志转发机制优化
+- update.py 日志回传到主程序
+  - 子进程输出通过 PIPE 捕获
+  - daemon 线程实时转发到主日志
+  - 进程隔离，update.py 退出不影响主程序
+- 统一的日志入口
+  - 所有日志由主程序统一管理
+  - [UPDATE] 前缀由主程序统一添加
+  - update.py 只输出纯文本消息
 
 ### Changed
-- （已有功能的非破坏性修改）
 
-### Deprecated
-- （标记为废弃的功能，未来可能移除）
-
-### Removed
-- （已彻底移除的功能）
+- 优化函数排版和代码结构
+  - 统一空行规范，提高可读性
+  - 添加完整的文档字符串
+  - 优化长参数分行格式
+- 改进日志级别使用
+  - set_autostart() 成功 → INFO（原 DEBUG）
+  - set_autostart() 失败 → ERROR（原 DEBUG）
+  - 壁纸变更检测 → INFO（原 WARNING）
+  - 配置详情、网络请求 → DEBUG（原 INFO）
+- 调整启动流程步骤
+  - 步骤1: 检查配置文件
+  - 步骤2: 检查启动参数
+  - 步骤3: 清理过期日志（新增）
+  - 步骤4: 启动主程序
 
 ### Fixed
-- （bug 修复）
 
-### Security
-- （安全相关修复，如 XSS、路径穿越等）
-
-
-> **注**：所有日期格式为 YYYY-MM-DD
+- 修复退出提示重复显示问题
+  - 添加全局标志防止 app_exit() 重复调用
+  - 保留 finally 块确保必定退出
+- 修复日志格式化错误
+  - 正确处理 record.asctime 属性生成时机
+  - 先调用父类格式化再生成彩色输出
+  - 左右方括号都显示正确颜色
+- 修复日志级别误判
+  - 主程序根据内容智能识别子进程日志级别
+  - 避免所有 update.py 日志都显示为 INFO
 
 ---
 
