@@ -1,5 +1,8 @@
 /.venv/
 /build/
-/dist/
 /config.json
 /logs/
+/dist/logs/
+/dist/config.json
+/WallpaperGuardian.spec
+/Update.spec

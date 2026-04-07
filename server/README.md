@@ -1,6 +1,12 @@
 # Wallpaper Guardian 更新服务器
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+
 基于 FastAPI 的自动更新服务器，为 Wallpaper Guardian 客户端提供版本检查和文件下载服务。
+
+**当前版本**: v1.0.1 (2026-04-07)
 
 ## 📋 功能特性
 
@@ -10,6 +16,8 @@
 - ✅ 详细的控制台日志输出
 - ✅ 健康检查接口
 - ✅ 自动创建版本目录
+- ✅ 配置化管理（v1.0.1 新增）
+- ✅ 动态文件名返回（v1.0.1 修复）
 
 ## 🚀 快速开始
 
@@ -37,11 +45,20 @@ server/
 编辑 `server/main.py` 顶部的配置区：
 
 ```python
-# 最新版本号
-LATEST_VERSION = "1.1.0"
+# 服务器信息
+TITLE = "Wallpaper Guardian Update Server"
+DESCRIPTION = "壁纸守护程序自动更新服务器"
+VERSION = "1.0.1"  # 服务端版本号
+
+# 服务器监听地址及端口
+HOST = "0.0.0.0"
+PORT = 8000
+
+# 最新版本号（客户端版本）
+LATEST_VERSION = "1.2.1"
 
 # 新版本下载地址（可选，用于动态切换服务器）
-NEW_HOST = None  # 例如: "http://new-server.com/api/updater"
+NEW_HOST = None  # 例如: "http://new-server.com"
 ```
 
 ### 4. 启动服务器
@@ -125,9 +142,10 @@ GET /
 ```json
 {
   "service": "Wallpaper Guardian Update Server",
-  "version": "1.0.0",
-  "latest_version": "1.1.0",
-  "status": "running"
+  "version": "1.0.1",
+  "latest_version": "1.2.1",
+  "status": "running",
+  "new_host": null
 }
 ```
 
@@ -151,7 +169,14 @@ GET /health
 
 编辑 `main.py`：
 ```python
-LATEST_VERSION = "1.2.0"  # 改为新版本号
+LATEST_VERSION = "1.2.1"  # 改为新的客户端版本号
+```
+
+### 修改服务端版本
+
+编辑 `main.py`：
+```python
+VERSION = "1.0.2"  # 改为新的服务端版本号
 ```
 
 ### 动态切换服务器地址
@@ -284,4 +309,35 @@ A: 访问 `http://localhost:8000/health` 查看健康状态。
 
 ## 📄 许可证
 
-本项目仅供学习和个人使用。
+本项目采用 [MIT 许可证](../LICENSE) - 详情请查看 [LICENSE](../LICENSE) 文件。
+
+## 📝 更新日志
+
+### v1.0.1 (2026-04-07)
+
+**Fixed**:
+- 修复下载接口文件名硬编码问题
+  - `filename="1.1.0.exe"` → `filename=f"{version}.exe"`
+  - 现在下载的文件名与请求的版本号一致
+- 修复配置变量拼写错误
+  - `DeSCRIPTION` → `DESCRIPTION`
+
+**Changed**:
+- 配置化改造
+  - 新增 TITLE、DESCRIPTION、VERSION、HOST、PORT 配置变量
+  - FastAPI 初始化使用配置变量
+  - root 接口响应使用配置变量
+  - 启动信息使用配置变量
+  - 提高代码可维护性和灵活性
+- 更新最新客户端版本号
+  - `LATEST_VERSION`: "1.1.1" → "1.2.1"
+- root 接口新增 `new_host` 字段
+  - 用于动态切换服务器地址
+
+### v1.0.0 (2026-04-06)
+
+**Initial Release**:
+- 版本检查接口（POST /updater）
+- 文件下载接口（GET /download/{version}）
+- 健康检查接口（GET /health）
+- 服务器状态接口（GET /）

@@ -6,6 +6,11 @@ import ctypes
 import subprocess
 import logging
 
+# 强制设置 stdout 为 UTF-8 编码（解决 Windows 控制台乱码问题）
+if sys.platform.startswith('win'):
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 # 配置日志 - 输出到 stdout（会被主程序捕获）
 logging.basicConfig(
     level=logging.DEBUG,

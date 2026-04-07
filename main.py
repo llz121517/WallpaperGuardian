@@ -13,7 +13,7 @@ from datetime import datetime
 # ==================== 配置区 ====================
 # 以下变量用于生成 config.json 模板
 REMOTE_HOST = "http://localhost:8000"  # 基础服务器地址（不含路径）
-CURRENT_VERSION = "1.1.1"  # 当前版本号
+CURRENT_VERSION = "1.2.1"  # 当前版本号
 # ===============================================
 
 
@@ -251,9 +251,9 @@ def get_wallpaper():
 def set_wallpaper(path):
     """设置壁纸（带重试机制）"""
     # 开发环境：只打印提示，不实际修改壁纸
-    if not getattr(sys, 'frozen', False):
-        logger.info(f"[DEV MODE] 跳过壁纸设置: {path}")
-        return
+    # if not getattr(sys, 'frozen', False):
+    #     logger.info(f"[DEV MODE] 跳过壁纸设置: {path}")
+    #     return
 
     logger.info(f"开始设置壁纸: {path}")
     SPI_SETDESKWALLPAPER = 0x0014

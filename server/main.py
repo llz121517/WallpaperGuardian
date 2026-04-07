@@ -8,15 +8,18 @@ from pydantic import BaseModel
 import os
 from typing import Optional
 
-app = FastAPI(
-    title="Wallpaper Guardian Update Server",
-    description="壁纸守护程序自动更新服务器",
-    version="1.0.0"
-)
-
 # ==================== 配置区 ====================
+# 服务器信息
+TITLE = "Wallpaper Guardian Update Server"
+DESCRIPTION = "壁纸守护程序自动更新服务器"
+VERSION = "1.0.1"
+
+# 服务器监听地址及端口
+HOST = "0.0.0.0"
+PORT = 8000
+
 # 最新版本号
-LATEST_VERSION = "1.1.1"
+LATEST_VERSION = "1.2.1"
 
 # 新版本下载地址（可选，用于动态切换服务器）
 NEW_HOST = None  # 例如: "http://new-server.com"
@@ -27,6 +30,12 @@ VERSIONS_DIR = os.path.join(os.path.dirname(__file__), "versions")
 # 确保版本目录存在
 os.makedirs(VERSIONS_DIR, exist_ok=True)
 # ===============================================
+
+app = FastAPI(
+    title= TITLE,
+    description= DESCRIPTION,
+    version= VERSION
+)
 
 
 class UpdateRequest(BaseModel):
@@ -122,7 +131,7 @@ async def download_version(version: str):
     # 返回文件流
     return FileResponse(
         path=file_path,
-        filename="1.1.0.exe",
+        filename=f"{version}.exe",
         media_type="application/octet-stream"
     )
 
@@ -131,10 +140,11 @@ async def download_version(version: str):
 async def root():
     """服务器状态检查"""
     return {
-        "service": "Wallpaper Guardian Update Server",
-        "version": "1.0.0",
+        "service": TITLE,
+        "version": VERSION,
         "latest_version": LATEST_VERSION,
-        "status": "running"
+        "status": "running",
+        "new_host": NEW_HOST
     }
 
 
@@ -152,7 +162,7 @@ if __name__ == "__main__":
     print("="*60)
     print(f"最新版本: {LATEST_VERSION}")
     print(f"版本目录: {VERSIONS_DIR}")
-    print(f"服务器地址: http://0.0.0.0:8000")
+    print(f"服务器地址: http://{HOST}:{PORT}")
     print("="*60)
     print("\n可用接口:")
     print("  POST /updater       - 版本检查")
@@ -162,4 +172,4 @@ if __name__ == "__main__":
     print("="*60)
     
     # 启动服务器
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=HOST, port=PORT)

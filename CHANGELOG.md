@@ -12,11 +12,55 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/) stand
 
 ---
 
+## [1.2.1] - 2026-04-07
+
+**客户端版本**: 1.2.1 | **服务端版本**: 1.0.1
+
+### 客户端 (WallpaperGuardian + Update)
+
+#### Changed
+- 移除开发环境壁纸设置保护机制
+  - 删除 `if not getattr(sys, 'frozen', False)` 判断
+  - 开发和生产环境均会执行实际壁纸设置操作
+  - 简化代码逻辑，统一行为
+
+#### Fixed
+- 修复 Windows 打包后 update.py 日志中文乱码问题
+  - 强制设置 stdout 为 UTF-8 编码
+  - 解决 GBK 编码导致的乱码显示
+
+### 服务端 (Update Server)
+
+#### Fixed
+- 修复下载接口文件名硬编码问题
+  - `filename="1.1.0.exe"` → `filename=f"{version}.exe"`
+  - 现在下载的文件名与请求的版本号一致
+- 修复配置变量拼写错误
+  - `DeSCRIPTION` → `DESCRIPTION`
+
+#### Changed
+- 配置化改造
+  - 新增 TITLE、DESCRIPTION、VERSION、HOST、PORT 配置变量
+  - FastAPI 初始化使用配置变量
+  - root 接口响应使用配置变量
+  - 启动信息使用配置变量
+  - 提高代码可维护性和灵活性
+- 更新最新版本号
+  - `LATEST_VERSION`: "1.1.1" → "1.2.0"
+- root 接口新增 `new_host` 字段
+  - 用于动态切换服务器地址
+
+---
+
 ## [1.2.0] - 2026-04-07
 
-### Added
+**客户端版本**: 1.2.0 | **服务端版本**: 1.0.0
 
-#### 日志系统全面升级
+### 客户端 (WallpaperGuardian + Update)
+
+#### Added
+
+##### 日志系统全面升级
 - 统一使用 Python logging 模块替代 print
   - 结构化日志输出，支持级别分类
   - 所有调试信息改为 logging 实现
@@ -43,7 +87,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/) stand
   - 安全的异常处理，单个文件失败不影响其他
   - 详细的清理过程记录
 
-#### 日志转发机制优化
+##### 日志转发机制优化
 - update.py 日志回传到主程序
   - 子进程输出通过 PIPE 捕获
   - daemon 线程实时转发到主日志
@@ -53,8 +97,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/) stand
   - [UPDATE] 前缀由主程序统一添加
   - update.py 只输出纯文本消息
 
-### Changed
-
+#### Changed
 - 优化函数排版和代码结构
   - 统一空行规范，提高可读性
   - 添加完整的文档字符串
@@ -70,8 +113,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/) stand
   - 步骤3: 清理过期日志（新增）
   - 步骤4: 启动主程序
 
-### Fixed
-
+#### Fixed
 - 修复退出提示重复显示问题
   - 添加全局标志防止 app_exit() 重复调用
   - 保留 finally 块确保必定退出
