@@ -2,13 +2,13 @@ import ctypes
 import time
 import os
 import sys
+import glob
+import time
 import winreg
 import subprocess
 import json
-import logging
 import threading
-from datetime import datetime
-
+from datetime import datetime, timedelta
 
 # ==================== 配置区 ====================
 # 以下变量用于生成 config.json 模板
@@ -17,156 +17,52 @@ CURRENT_VERSION = "1.2.1"  # 当前版本号
 # ===============================================
 
 
-# 初始化日志系统
-def setup_logger():
-    """配置主程序日志"""
-    logger = logging.getLogger('WallpaperGuardian')
-    logger.setLevel(logging.DEBUG)
-    
-    # 创建日志目录
-    if getattr(sys, 'frozen', False):
-        log_dir = os.path.join(os.path.dirname(sys.executable), 'logs')
-    else:
-        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-    
-    # 日志文件名（带日期）
-    log_file = os.path.join(log_dir, f'main_{datetime.now().strftime("%Y%m%d")}.log')
-    
-    # 文件处理器
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setLevel(logging.DEBUG)
-    
-    # 控制台处理器（仅开发环境）
-    if not getattr(sys, 'frozen', False):
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        
-        # 添加颜色支持
-        class ColorFormatter(logging.Formatter):
-            """彩色日志格式化器"""
-            # ANSI 颜色代码
-            LEVEL_COLORS = {
-                'DEBUG': '\033[36m',      # 青色
-                'INFO': '\033[32m',       # 绿色
-                'WARNING': '\033[33m',    # 黄色
-                'ERROR': '\033[31m',      # 红色
-                'CRITICAL': '\033[1;31m'  # 亮红色
-            }
-            UPDATER_COLOR = '\033[35m'    # 紫色 - UPDATE 前缀
-            RESET = '\033[0m'             # 重置颜色
-            
-            def format(self, record):
-                # 获取对应级别的颜色
-                level_color = self.LEVEL_COLORS.get(record.levelname, '')
-                
-                # 保存原始消息
-                original_msg = record.getMessage()
-                
-                # 检查是否是 UPDATE 的日志（来自 update.py）
-                is_updater = '[UPDATE]' in original_msg
-                
-                # 如果是 UPDATE 日志，给 [UPDATE] 添加紫色
-                if is_updater:
-                    colored_msg = original_msg.replace('[UPDATE]', f'{self.UPDATER_COLOR}[UPDATE]{self.RESET}')
-                    # 临时修改消息
-                    record.msg = colored_msg
-                    record.args = ()
-                
-                # 先调用父类格式化，生成 asctime
-                formatted = super().format(record)
-                
-                # 保存原始级别名称
-                original_levelname = record.levelname
-                
-                # 给级别名称和方括号都添加颜色
-                colored_levelname = f"{level_color}[{original_levelname}]{self.RESET}"
-                
-                # 替换格式化后的级别名称
-                formatted = formatted.replace(f'[{original_levelname}]', colored_levelname)
-                
-                # 给整行添加颜色（除了重置部分）
-                if is_updater:
-                    # UPDATE 日志：整行用级别颜色，[UPDATE] 保持紫色
-                    formatted = f"{level_color}{formatted}{self.RESET}"
-                else:
-                    # 普通日志：整行用级别颜色
-                    formatted = f"{level_color}{formatted}{self.RESET}"
-                
-                # 恢复原始值
-                record.levelname = original_levelname
-                if is_updater:
-                    record.msg = original_msg
-                
-                return formatted
-        
-        color_formatter = ColorFormatter(
-            '%(asctime)s [%(levelname)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        console_handler.setFormatter(color_formatter)
-        logger.addHandler(console_handler)
-    
-    # 日志格式（文件使用普通格式）
-    formatter = logging.Formatter(
-        '%(asctime)s [%(levelname)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    file_handler.setFormatter(formatter)
-    
-    logger.addHandler(file_handler)
-    return logger
+class LLog:
+    DEBUG = 0
+    INFO = 1
+    WARN = 2
+    ERROR = 3
 
+    level = INFO
+    dir = "logs"
+    keep = 7
 
-logger = setup_logger()
+    @classmethod
+    def set_level(cls, lv):   cls.level = lv
+    @classmethod
+    def set_dir(cls, d, keep=7):  cls.dir = d; cls.keep = keep
 
-
-def cleanup_old_logs(log_dir, days=30):
-    """清理超过指定天数的日志文件"""
-    import glob
-    from datetime import datetime, timedelta
-    
-    try:
-        # 查找所有日志文件
-        log_pattern = os.path.join(log_dir, 'main_*.log')
-        log_files = glob.glob(log_pattern)
-        
-        if not log_files:
-            logger.debug("没有发现日志文件，无需清理")
+    @classmethod
+    def _write(cls, lv, tag, msg):
+        if cls.level > lv:
             return
-        
-        # 计算截止日期
-        cutoff_date = datetime.now() - timedelta(days=days)
-        deleted_count = 0
-        
-        for log_file in log_files:
-            try:
-                # 从文件名提取日期（格式：main_YYYYMMDD.log）
-                filename = os.path.basename(log_file)
-                date_str = filename.replace('main_', '').replace('.log', '')
-                
-                # 解析日期
-                file_date = datetime.strptime(date_str, '%Y%m%d')
-                
-                # 如果文件日期早于截止日期，删除
-                if file_date < cutoff_date:
-                    os.remove(log_file)
-                    deleted_count += 1
-                    logger.info(f"已删除过期日志: {filename}")
-            except Exception as e:
-                logger.warning(f"处理日志文件失败 {log_file}: {e}")
-        
-        if deleted_count > 0:
-            logger.info(f"日志清理完成，共删除 {deleted_count} 个文件")
-        else:
-            logger.debug("没有过期的日志文件需要清理")
-            
-    except Exception as e:
-        logger.error(f"日志清理失败: {e}")
+        ts = time.strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{ts}] [{tag}] {msg}"
+        print(line)
+
+        os.makedirs(cls.dir, exist_ok=True)
+        fname = time.strftime("%Y-%m-%d.log")
+        with open(os.path.join(cls.dir, fname), "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+
+        cutoff = datetime.now() - timedelta(days=cls.keep)
+        for fn in glob.glob(os.path.join(cls.dir, "*.log")):
+            if datetime.fromtimestamp(os.path.getmtime(fn)) < cutoff:
+                os.remove(fn)
+
+    @classmethod
+    def debug(cls, msg): cls._write(cls.DEBUG, "DEBUG", msg)
+    @classmethod
+    def info(cls, msg):  cls._write(cls.INFO, "INFO", msg)
+    @classmethod
+    def warn(cls, msg):  cls._write(cls.WARN, "WARN", msg)
+    @classmethod
+    def error(cls, msg): cls._write(cls.ERROR, "ERROR", msg)
+
+logger = LLog
 
 
 WIN_VER = sys.getwindowsversion().major
-
 
 def show_error(msg):
     """显示错误消息框"""
@@ -444,13 +340,16 @@ def main():
 
 
 if __name__ == '__main__':
-    logger.info("#" * 60)
-    logger.info("# WallpaperGuardian 程序入口")
-    logger.info("#" * 60)
+    # 初始化日志
+    LLog.set_level(LLog.DEBUG)
+    LLog.set_dir("logs", keep=7)
+
+    logger.info("=" * 60)
+    logger.info("程序入口")
     
     # 检查单实例
     if not ensure_single_instance():
-        logger.warning("已有实例在运行，退出")
+        logger.warning("\n已有实例在运行，退出")
         sys.exit(0)
 
     # 隐藏控制台窗口（Windows）
@@ -463,28 +362,12 @@ if __name__ == '__main__':
         logger.debug("Windows 7 环境，设置 PATH")
         os.environ['PATH'] = os.path.dirname(sys.executable) + ';' + os.environ.get('PATH', '')
 
-    # 步骤1: 优先检查并生成 config.json
+    # 步骤1: 检查并生成 config.json
     logger.info("步骤1: 检查配置文件")
     ensure_config_exists()
 
-    # 步骤2: 检测启动参数，如果没有 --no-update 则启动更新程序
-    logger.info("步骤2: 检查启动参数")
-    logger.debug(f"启动参数: {sys.argv}")
-    
-    if '--no-update' not in sys.argv:
-        logger.info("未检测到 --no-update 参数，准备启动更新程序")
-        launch_update()
-    else:
-        logger.info("检测到 --no-update 参数，跳过更新程序启动")
+    logger.info("步骤2: 启动更新程序")
+    launch_update()
 
-    # 步骤3: 清理过期日志
-    logger.info("步骤3: 清理过期日志")
-    if getattr(sys, 'frozen', False):
-        log_dir = os.path.join(os.path.dirname(sys.executable), 'logs')
-    else:
-        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-    cleanup_old_logs(log_dir, days=30)
-
-    # 步骤4: 正常运行主程序
-    logger.info("步骤4: 启动主程序")
+    logger.info("步骤3: 启动主程序")
     main()
