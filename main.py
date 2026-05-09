@@ -54,6 +54,8 @@ class LLog:
     def warn(cls, msg):  cls._write(cls.WARN, "WARN", msg)
     @classmethod
     def error(cls, msg): cls._write(cls.ERROR, "ERROR", msg)
+    @classmethod
+    def update(cls, msg): cls._write(cls.update, "UPDATE", msg)
 
 log = LLog
 
@@ -274,12 +276,7 @@ def launch_update():
                     if not text:
                         continue
 
-                    if any(k in text for k in ["失败", "错误", "异常", "Error", "Exception"]):
-                        log.error(f"[UPDATE] {text}")
-                    elif any(k in text for k in ["警告", "Warning", "不存在"]):
-                        log.warn(f"[UPDATE] {text}")
-                    else:
-                        log.info(f"[UPDATE] {text}")
+                    log.update(text)
                 except:
                     pass
 
@@ -338,6 +335,7 @@ if __name__ == '__main__':
 
     log.info("=" * 60)
     log.info("程序入口")
+    log.info("=" * 60)
     
     # 检查单实例
     if not ensure_single_instance():
