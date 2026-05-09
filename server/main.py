@@ -19,7 +19,7 @@ HOST = "0.0.0.0"
 PORT = 8000
 
 # 最新版本号
-LATEST_VERSION = "1.2.1"
+LATEST_VERSION = "1.3.0"
 
 # 新版本下载地址（可选，用于动态切换服务器）
 NEW_HOST = None  # 例如: "http://new-server.com"

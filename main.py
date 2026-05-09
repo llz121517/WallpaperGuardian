@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 # ==================== 配置区 ====================
 # 以下变量用于生成 config.json 模板
 REMOTE_HOST = "http://localhost:8000"  # 基础服务器地址（不含路径）
-CURRENT_VERSION = "1.2.1"  # 当前版本号
+CURRENT_VERSION = "1.3.0"  # 当前版本号
 # ===============================================
 
 
