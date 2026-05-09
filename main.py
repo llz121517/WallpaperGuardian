@@ -20,7 +20,7 @@ CURRENT_VERSION = "1.2.1"  # 当前版本号
 # ===============================================
 
 
-class LLog:
+class log:
     DEBUG, INFO, WARN, ERROR = range(4)
 
     level = INFO
@@ -55,9 +55,9 @@ class LLog:
     @classmethod
     def error(cls, msg): cls._write(cls.ERROR, "ERROR", msg)
     @classmethod
-    def update(cls, msg): cls._write(cls.update, "UPDATE", msg)
+    def update(cls, msg): cls._write(cls.INFO, "UPDATE", msg)
 
-log = LLog
+log = log
 
 
 WIN_VER = sys.getwindowsversion().major
@@ -247,13 +247,13 @@ def launch_update():
             update_exe = os.path.join(exe_dir, "update.py")
             cmd = [sys.executable, "-u", update_exe]
 
-        LLog.debug(f"检查更新程序: {update_exe}")
+        log.debug(f"检查更新程序: {update_exe}")
 
         if not os.path.exists(update_exe):
-            LLog.debug("更新程序不存在，跳过")
+            log.debug("更新程序不存在，跳过")
             return
 
-        LLog.info("发现更新程序，正在后台启动...")
+        log.info("发现更新程序，正在后台启动...")
 
         # 启动更新程序，捕获 stdout
         process = subprocess.Popen(
@@ -266,6 +266,10 @@ def launch_update():
 
         # 线程：实时捕获 Update.exe 的 print
         def forward_output():
+            if not show_update_log:
+                log.debug("更新程序日志已被屏蔽")
+                return
+
             while True:
                 line = process.stdout.readline()
                 if not line:
@@ -283,10 +287,10 @@ def launch_update():
         # 启动守护线程
         t = threading.Thread(target=forward_output, daemon=True)
         t.start()
-        LLog.debug("更新程序已启动，输出已转发到主日志")
+        log.debug("更新程序已启动")
 
     except Exception as e:
-        LLog.debug(f"启动更新失败: {e}")
+        log.debug(f"启动更新失败: {e}")
 
 
 def main():
@@ -320,7 +324,7 @@ def main():
             if current:
                 log.debug("壁纸未变更，无需操作")
             else:
-                log.warning("无法获取当前壁纸路径")
+                log.warn("无法获取当前壁纸路径")
         
         log.debug("等待10秒后下次检测...")
         time.sleep(10)
@@ -332,6 +336,7 @@ if __name__ == '__main__':
     log.dir = "logs"
     log.keep = 7
     log.flush = True
+    show_update_log = True
 
     log.info("=" * 60)
     log.info("程序入口")
