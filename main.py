@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# main.py
+
 import ctypes
 import time
 import os
@@ -18,19 +21,12 @@ CURRENT_VERSION = "1.2.1"  # 当前版本号
 
 
 class LLog:
-    DEBUG = 0
-    INFO = 1
-    WARN = 2
-    ERROR = 3
+    DEBUG, INFO, WARN, ERROR = range(4)
 
     level = INFO
     dir = "logs"
     keep = 7
-
-    @classmethod
-    def set_level(cls, lv):   cls.level = lv
-    @classmethod
-    def set_dir(cls, d, keep=7):  cls.dir = d; cls.keep = keep
+    flush = True
 
     @classmethod
     def _write(cls, lv, tag, msg):
@@ -38,7 +34,7 @@ class LLog:
             return
         ts = time.strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{ts}] [{tag}] {msg}"
-        print(line)
+        print(line, flush=cls.flush)
 
         os.makedirs(cls.dir, exist_ok=True)
         fname = time.strftime("%Y-%m-%d.log")
@@ -59,7 +55,7 @@ class LLog:
     @classmethod
     def error(cls, msg): cls._write(cls.ERROR, "ERROR", msg)
 
-logger = LLog
+log = LLog
 
 
 WIN_VER = sys.getwindowsversion().major
@@ -74,7 +70,7 @@ def ensure_single_instance():
 
     try:
         # 尝试创建命名互斥锁
-        logger.debug("检查单实例锁...")
+        log.debug("检查单实例锁...")
         mutex = ctypes.windll.kernel32.CreateMutexW(
             None,
             True,
@@ -84,17 +80,17 @@ def ensure_single_instance():
         last_error = ctypes.windll.kernel32.GetLastError()
         if last_error == 183:  # ERROR_ALREADY_EXISTS
             # 互斥锁已存在，说明已有实例在运行
-            logger.debug("检测到已有实例在运行")
+            log.debug("检测到已有实例在运行")
             ctypes.windll.user32.MessageBoxW(0, "程序已在运行中", "Wallpaper Guardian", 0x40)
 
             return False
         else:
             # 成功创建互斥锁，允许运行
-            logger.debug("单实例锁创建成功")
+            log.debug("单实例锁创建成功")
             return True
 
     except Exception as e:
-        logger.debug(f"互斥锁检查失败: {e}")
+        log.debug(f"互斥锁检查失败: {e}")
         return True
 
 
@@ -102,7 +98,7 @@ def set_autostart():
     """设置开机自启动"""
     try:
         exe_path = sys.executable if getattr(sys, 'frozen', False) else os.path.abspath(sys.argv[0])
-        logger.debug(f"设置开机自启动: {exe_path}")
+        log.debug(f"设置开机自启动: {exe_path}")
 
         # 添加注册表自启动项
         try:
@@ -113,14 +109,14 @@ def set_autostart():
             )
             winreg.SetValueEx(key, "WallpaperGuardian", 0, winreg.REG_SZ, f'"{exe_path}"')
             winreg.CloseKey(key)
-            logger.info("注册表自启动设置成功")
+            log.info("注册表自启动设置成功")
         except Exception as e:
-            logger.error(f"注册表设置失败: {str(e)}")
+            log.error(f"注册表设置失败: {str(e)}")
             show_error(f"注册表设置失败: {str(e)}")
 
         return True
     except Exception as e:
-        logger.error(f"自启动设置异常: {str(e)}")
+        log.error(f"自启动设置异常: {str(e)}")
         show_error(f"自启动设置失败: {str(e)}")
         return False
 
@@ -133,13 +129,13 @@ def get_wallpaper():
         
         if ctypes.windll.user32.SystemParametersInfoW(SPI_GETDESKWALLPAPER, 512, buf, 0):
             current_wallpaper = buf.value
-            logger.debug(f"当前壁纸: {current_wallpaper}")
+            log.debug(f"当前壁纸: {current_wallpaper}")
             return current_wallpaper
         
-        logger.warning("获取壁纸路径失败")
+        log.warn("获取壁纸路径失败")
         return None
     except Exception as e:
-        logger.error(f"壁纸检测失败: {str(e)}")
+        log.error(f"壁纸检测失败: {str(e)}")
         show_error(f"壁纸检测失败: {str(e)}")
         return None
 
@@ -151,25 +147,25 @@ def set_wallpaper(path):
     #     logger.info(f"[DEV MODE] 跳过壁纸设置: {path}")
     #     return
 
-    logger.info(f"开始设置壁纸: {path}")
+    log.info(f"开始设置壁纸: {path}")
     SPI_SETDESKWALLPAPER = 0x0014
     
     for i in range(3):
         try:
-            logger.debug(f"尝试设置壁纸 ({i+1}/3)...")
+            log.debug(f"尝试设置壁纸 ({i + 1}/3)...")
             
             if ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, path, 3):
-                logger.info("壁纸设置成功")
+                log.info("壁纸设置成功")
                 return
             
-            logger.warning(f"第 {i+1} 次尝试失败，等待1秒后重试...")
+            log.warn(f"第 {i + 1} 次尝试失败，等待1秒后重试...")
             time.sleep(1)
         except Exception as e:
-            logger.error(f"壁纸设置错误: {str(e)}")
+            log.error(f"壁纸设置错误: {str(e)}")
             show_error(f"壁纸设置错误: {str(e)}")
             time.sleep(1)
     
-    logger.error("壁纸设置失败，已达最大重试次数")
+    log.error("壁纸设置失败，已达最大重试次数")
     show_error("壁纸设置失败，请检查文件权限")
 
 
@@ -177,16 +173,16 @@ def resource_path(relative):
     """获取资源文件路径（兼容开发模式和打包模式）"""
     try:
         base = sys._MEIPASS
-        logger.debug(f"打包模式，资源基础路径: {base}")
+        log.debug(f"打包模式，资源基础路径: {base}")
     except AttributeError:
         base = os.path.abspath(".")
-        logger.debug(f"开发模式，资源基础路径: {base}")
+        log.debug(f"开发模式，资源基础路径: {base}")
 
     full_path = os.path.join(base, relative)
-    logger.debug(f"资源完整路径: {full_path}")
+    log.debug(f"资源完整路径: {full_path}")
     
     if not os.path.exists(full_path):
-        logger.error(f"资源文件不存在: {full_path}")
+        log.error(f"资源文件不存在: {full_path}")
         show_error(f"缺少资源文件: {relative}")
         sys.exit(1)
     
@@ -198,11 +194,11 @@ def get_exe_dir():
     if getattr(sys, 'frozen', False):
         # 打包后：返回 exe 所在目录
         exe_dir = os.path.dirname(sys.executable)
-        logger.debug(f"打包模式，程序目录: {exe_dir}")
+        log.debug(f"打包模式，程序目录: {exe_dir}")
     else:
         # 开发环境：返回脚本所在目录
         exe_dir = os.path.dirname(os.path.abspath(__file__))
-        logger.debug(f"开发模式，程序目录: {exe_dir}")
+        log.debug(f"开发模式，程序目录: {exe_dir}")
     
     return exe_dir
 
@@ -213,15 +209,15 @@ def ensure_config_exists():
         exe_dir = get_exe_dir()
         config_path = os.path.join(exe_dir, 'config.json')
         
-        logger.debug(f"检查配置文件: {config_path}")
+        log.debug(f"检查配置文件: {config_path}")
         
         # 如果已存在，直接返回
         if os.path.exists(config_path):
-            logger.debug("config.json 已存在，跳过生成")
+            log.debug("config.json 已存在，跳过生成")
             return
         
         # 不存在则自动生成
-        logger.info("config.json 不存在，开始生成...")
+        log.info("config.json 不存在，开始生成...")
         config_data = {
             "remote_host": REMOTE_HOST,
             "current_version": CURRENT_VERSION
@@ -230,144 +226,140 @@ def ensure_config_exists():
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config_data, f, ensure_ascii=False, indent=2)
         
-        logger.info(f"config.json 生成成功: {config_data}")
+        log.info(f"config.json 生成成功: {config_data}")
     except Exception as e:
         # 生成失败静默跳过，不影响主程序运行
-        logger.warning(f"config.json 生成失败: {e}")
+        log.warn(f"config.json 生成失败: {e}")
 
 
 def launch_update():
-    """后台静默启动 Update.exe/update.py（不阻塞主程序）"""
+    """启动更新程序，并捕获其 print 输出转发到 LLog"""
     try:
         exe_dir = get_exe_dir()
-        
-        # 根据运行环境选择不同的更新程序
+
+        # 选择启动文件
         if getattr(sys, 'frozen', False):
-            # 打包后：启动 Update.exe
-            update_program = os.path.join(exe_dir, 'Update.exe')
-            cmd = [update_program]
+            update_exe = os.path.join(exe_dir, "Update.exe")
+            cmd = [update_exe]
         else:
-            # 开发环境：启动 update.py
-            update_program = os.path.join(exe_dir, 'update.py')
-            cmd = [sys.executable, '-u', update_program]  # -u 强制无缓冲输出
-        
-        logger.debug(f"检查更新程序: {update_program}")
-        
-        # 检查更新程序是否存在
-        if os.path.exists(update_program):
-            logger.info("发现更新程序，准备启动...")
-            
-            # 以独立进程方式后台启动，重定向输出到主进程
-            process = subprocess.Popen(
-                cmd,
-                cwd=exe_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                bufsize=0,  # 无缓冲
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
-            )
-            
-            # 启动线程读取更新程序的输出并转发到主程序日志
-            def forward_output():
+            update_exe = os.path.join(exe_dir, "update.py")
+            cmd = [sys.executable, "-u", update_exe]
+
+        LLog.debug(f"检查更新程序: {update_exe}")
+
+        if not os.path.exists(update_exe):
+            LLog.debug("更新程序不存在，跳过")
+            return
+
+        LLog.info("发现更新程序，正在后台启动...")
+
+        # 启动更新程序，捕获 stdout
+        process = subprocess.Popen(
+            cmd,
+            cwd=exe_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+        )
+
+        # 线程：实时捕获 Update.exe 的 print
+        def forward_output():
+            while True:
+                line = process.stdout.readline()
+                if not line:
+                    break
+
                 try:
-                    while True:
-                        line = process.stdout.readline()
-                        if not line:
-                            break
-                        
-                        # 解码并记录日志
-                        try:
-                            text = line.decode('utf-8', errors='ignore').rstrip()
-                            if text:
-                                # 根据内容判断日志级别
-                                if any(keyword in text for keyword in ['失败', '错误', '异常', 'Error', 'Exception']):
-                                    logger.error(f"[UPDATE] {text}")
-                                elif any(keyword in text for keyword in ['警告', 'Warning', '不存在']):
-                                    logger.warning(f"[UPDATE] {text}")
-                                else:
-                                    logger.info(f"[UPDATE] {text}")
-                        except Exception:
-                            pass
-                except Exception as e:
-                    logger.error(f"输出转发线程异常: {e}")
-            
-            output_thread = threading.Thread(target=forward_output, daemon=True)
-            output_thread.start()
-            logger.debug("输出转发线程已启动")
-            logger.debug("更新程序已启动（输出将转发到主日志）")
-        else:
-            logger.debug("更新程序不存在，跳过更新")
+                    text = line.decode("utf-8", errors="ignore").strip()
+                    if not text:
+                        continue
+
+                    if any(k in text for k in ["失败", "错误", "异常", "Error", "Exception"]):
+                        log.error(f"[UPDATE] {text}")
+                    elif any(k in text for k in ["警告", "Warning", "不存在"]):
+                        log.warn(f"[UPDATE] {text}")
+                    else:
+                        log.info(f"[UPDATE] {text}")
+                except:
+                    pass
+
+        # 启动守护线程
+        t = threading.Thread(target=forward_output, daemon=True)
+        t.start()
+        LLog.debug("更新程序已启动，输出已转发到主日志")
+
     except Exception as e:
-        # 更新程序不存在或启动失败，静默跳过
-        logger.debug(f"启动更新程序失败: {e}")
+        LLog.debug(f"启动更新失败: {e}")
 
 
 def main():
     """主程序 - 壁纸监控循环"""
-    logger.info("="*50)
-    logger.info("WallpaperGuardian 主程序启动")
-    logger.info("="*50)
+    log.info("=" * 50)
+    log.info("WallpaperGuardian 主程序启动")
+    log.info("=" * 50)
     
     original = resource_path('resources/wallpaper.jpg')
-    logger.debug(f"目标壁纸路径: {original}")
+    log.debug(f"目标壁纸路径: {original}")
 
     if not set_autostart():
-        logger.warning("自启动设置失败，但继续运行")
+        log.warn("自启动设置失败，但继续运行")
         show_error("警告：未能设置自启动，程序将继续运行但不会开机自启")
 
-    logger.info("进入壁纸监控循环...")
+    log.info("进入壁纸监控循环...")
     loop_count = 0
     
     while True:
         loop_count += 1
-        logger.debug(f"--- 监控循环 #{loop_count} ---")
+        log.debug(f"--- 监控循环 #{loop_count} ---")
         
         current = get_wallpaper()
         
         if current and current != original:
-            logger.info("检测到壁纸变更！")
-            logger.debug(f"当前壁纸: {current}")
-            logger.debug(f"目标壁纸: {original}")
+            log.info("检测到壁纸变更！")
+            log.debug(f"当前壁纸: {current}")
+            log.debug(f"目标壁纸: {original}")
             set_wallpaper(original)
         else:
             if current:
-                logger.debug("壁纸未变更，无需操作")
+                log.debug("壁纸未变更，无需操作")
             else:
-                logger.warning("无法获取当前壁纸路径")
+                log.warning("无法获取当前壁纸路径")
         
-        logger.debug("等待10秒后下次检测...")
+        log.debug("等待10秒后下次检测...")
         time.sleep(10)
 
 
 if __name__ == '__main__':
-    # 初始化日志
-    LLog.set_level(LLog.DEBUG)
-    LLog.set_dir("logs", keep=7)
+    # 初始化日志参数
+    log.level = log.DEBUG
+    log.dir = "logs"
+    log.keep = 7
+    log.flush = True
 
-    logger.info("=" * 60)
-    logger.info("程序入口")
+    log.info("=" * 60)
+    log.info("程序入口")
     
     # 检查单实例
     if not ensure_single_instance():
-        logger.warning("\n已有实例在运行，退出")
+        log.warn("\n已有实例在运行，退出")
         sys.exit(0)
 
     # 隐藏控制台窗口（Windows）
     if sys.platform.startswith('win'):
-        logger.debug("隐藏控制台窗口")
+        log.debug("隐藏控制台窗口")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
     # Windows 7 兼容处理
     if WIN_VER == 6:
-        logger.debug("Windows 7 环境，设置 PATH")
+        log.debug("Windows 7 环境，设置 PATH")
         os.environ['PATH'] = os.path.dirname(sys.executable) + ';' + os.environ.get('PATH', '')
 
     # 步骤1: 检查并生成 config.json
-    logger.info("步骤1: 检查配置文件")
+    log.info("步骤1: 检查配置文件")
     ensure_config_exists()
 
-    logger.info("步骤2: 启动更新程序")
+    log.info("步骤2: 启动更新程序")
     launch_update()
 
-    logger.info("步骤3: 启动主程序")
+    log.info("步骤3: 启动主程序")
     main()
