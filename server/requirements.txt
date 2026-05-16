@@ -1,8 +1,8 @@
 # 服务端依赖
-# 注意：完整依赖请参考项目根目录的 requirements.txt
+# 完整依赖请参考项目根目录的 requirements.txt
 
-fastapi==0.104.1
-uvicorn==0.24.0
-python-multipart==0.0.6
-pydantic==2.5.0
-typing_extensions>=4.8.0
+fastapi
+uvicorn
+python-multipart
+pydantic
+typing_extensions

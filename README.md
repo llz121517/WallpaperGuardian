@@ -1,9 +1,13 @@
 # Wallpaper Guardian - 壁纸守护工具
+[![stars](https://img.shields.io/github/stars/llz121517/WallpaperGuardian)](https://github.com/llz121517/WallpaperGuardian/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 
 一款简洁好用的 Windows 壁纸守护工具，自动锁定并恢复桌面壁纸，支持后台静默运行、开机自启与远程自动更新。
+
+# <img src="resources/wallpaper.jpg">
+- 默认壁纸
 
 ## ✨ 功能特性
 ### 核心功能
@@ -26,12 +30,12 @@
 - 权限：普通用户权限（需读写注册表、设置壁纸）
 - 网络：可选，仅自动更新功能需要
 
-### ⚠️ Windows 7 兼容提示
-如需适配 Win7，打包 Python 版本**必须 ≤3.8**（推荐 3.8.10）。
-高版本打包会出现缺失系统 DLL、`_winapi` 加载失败等问题。
+> ### ⚠️ Windows 7 兼容提示
+> 如需适配 Win7，打包 Python 版本**必须 ≤3.8**（推荐 3.8.10）。
+> 高版本打包会出现缺失系统 DLL、`_winapi` 加载失败等问题。
 
-> ### ⚠️ 重要安全提示
->目前客户端与更新服务端均未实现任何鉴权与校验机制，存在服务器地址被劫持、伪造返回恶意安装包的风险；请务必保证更新服务器完全可信，建议仅在**内网局域网**环境内部署使用，若自行使用非可信公网服务器产生安全风险与相关损失，作者不承担任何责任。
+### ⚠️ 重要安全提示
+目前客户端与更新服务端均未实现任何鉴权与校验机制，存在服务器地址被劫持、伪造返回恶意安装包的风险；请务必保证更新服务器完全可信，建议仅在**内网局域网**环境内部署使用，若自行使用非可信公网服务器产生安全风险与相关损失，作者不承担任何责任。
 
 ## 🚀 快速开始
 ### 正式版运行
@@ -44,6 +48,8 @@
 ### 源码运行
 ```bash
 pip install -r requirements.txt
+```
+```bash
 python main.py
 ```
 
@@ -57,7 +63,7 @@ wallpaper_guard/
 ├── resources/         # 默认壁纸资源
 ├── dist/              # 打包输出
 ├── build/             # 打包临时文件
-└── uninstall.bat      # 一键卸载脚本
+└── uninstall.bat      # 卸载脚本
 ```
 
 ## 🔨 打包命令
@@ -86,8 +92,8 @@ pyinstaller --onefile --windowed --name=Update update.py
 
 ## 🧩 使用说明
 - 更换壁纸：替换 `resources/wallpaper.jpg` 后重新打包
-- 停止程序：任务管理器结束对应进程
-- 卸载：运行 `uninstall.bat`，清理进程、注册表与程序文件
+- 停止程序：任务管理器结束对应进程，或使用`uninstall.bat`杀死
+- 卸载：运行 `uninstall.bat`，会自动杀死进程、清理注册表，随后需手动删除程序文件
 
 ## 🔄 自动更新流程
 1. 主程序后台拉起独立更新进程
@@ -102,7 +108,7 @@ pyinstaller --onefile --windowed --name=Update update.py
 - 基于 Windows 互斥锁实现单实例
 - Ctypes 调用系统 API 设置/读取壁纸
 - Subprocess 管道捕获子进程日志，统一转发
-- 自研轻量日志：分级打印、按天分文件、自动清旧日志
+- 自定义轻量日志：分级打印、按天分文件、自动清旧日志
 - 自动区分开发/打包环境，路径与日志目录自适应
 
 ## ⚠️ 注意事项
@@ -117,14 +123,14 @@ pyinstaller --onefile --windowed --name=Update update.py
 
 ## 📋 更新日志
 ### v1.3.0
-- 日志系统重构，替换原生 logging 为自研轻量日志
+- 日志系统重构，替换原生 logging 为自定义轻量日志
 - 精简代码、降低资源占用与磁盘 I/O
 - 优化启动流程与进程日志转发逻辑
 
 其余历史版本迭代详见 [CHANGELOG.md](CHANGELOG.md)
 
 ## 📄 开源许可
-本项目采用 [MIT](LICENSE) 开源协议，自由使用与二次开发。
+本项目采用 [MIT](LICENSE) 开源协议，可自由使用与二次开发。
 
 ## ⭐ 支持与贡献
-欢迎提交 [Issue](https://github.com/llz121517/WallpaperGuard/issues) 与 PR，觉得好用可以点 Star 支持！
+欢迎提交 [Issue](https://github.com/llz121517/WallpaperGuard/issues) 与 [PR](https://github.com/llz121517/WallpaperGuard/pulls)，觉得好用可以点 Star 支持！

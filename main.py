@@ -2,7 +2,6 @@
 # main.py
 
 import ctypes
-import time
 import os
 import sys
 import glob
@@ -20,7 +19,7 @@ CURRENT_VERSION = "1.3.0"  # 当前版本号
 # ===============================================
 
 
-class log:
+class Log:
     DEBUG, INFO, WARN, ERROR = range(4)
 
     level = INFO
@@ -57,7 +56,7 @@ class log:
     @classmethod
     def update(cls, msg): cls._write(cls.INFO, "UPDATE", msg)
 
-log = log
+log = Log
 
 
 WIN_VER = sys.getwindowsversion().major
@@ -144,10 +143,12 @@ def get_wallpaper():
 
 def set_wallpaper(path):
     """设置壁纸（带重试机制）"""
+    """
     # 开发环境：只打印提示，不实际修改壁纸
-    # if not getattr(sys, 'frozen', False):
-    #     logger.info(f"[DEV MODE] 跳过壁纸设置: {path}")
-    #     return
+    if not getattr(sys, 'frozen', False):
+         log.info(f"[DEV MODE] 跳过壁纸设置: {path}")
+         return
+    """
 
     log.info(f"开始设置壁纸: {path}")
     SPI_SETDESKWALLPAPER = 0x0014
@@ -303,7 +304,7 @@ def main():
     log.debug(f"目标壁纸路径: {original}")
 
     if not set_autostart():
-        log.warn("自启动设置失败，但继续运行")
+        log.warn("自启动设置失败")
         show_error("警告：未能设置自启动，程序将继续运行但不会开机自启")
 
     log.info("进入壁纸监控循环...")
