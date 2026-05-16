@@ -6,8 +6,9 @@
 
 一款简洁好用的 Windows 壁纸守护工具，自动锁定并恢复桌面壁纸，支持后台静默运行、开机自启与远程自动更新。
 
-# <img src="resources/wallpaper.jpg">
+![](resources/wallpaper.jpg)
 - 默认壁纸
+
 
 ## ✨ 功能特性
 ### 核心功能
