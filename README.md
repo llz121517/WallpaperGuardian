@@ -4,10 +4,11 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 
-一款简洁好用的 Windows 壁纸守护工具，自动锁定并恢复桌面壁纸，支持后台静默运行、开机自启与远程自动更新。
+一款 Windows 壁纸守护工具，自动锁定并恢复桌面壁纸，支持后台静默运行、开机自启与远程自动更新。
 
 ![](resources/wallpaper.jpg)
-- 默认壁纸
+
+• 默认壁纸
 
 
 ## ✨ 功能特性
@@ -24,6 +25,9 @@
 - ⚙️ 自动生成配置：首次运行创建 `config.json`
 - 📝 轻量自研日志：分级输出、按天分割、自动清理
 - 🛡️ 进程隔离：更新程序与主程序完全解耦
+
+> ### 注
+> 无法肘击非正版Win7定期将壁纸修改为黑色的机制（改不了纯色 ╮(╯_╰)╭）
 
 ## 💻 系统要求
 - 系统：Windows 7 / 8 / 10 / 11

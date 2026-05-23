@@ -1,3 +1,4 @@
+/.idea/
 /.venv/
 /build/
 /config.json
@@ -6,3 +7,4 @@
 /dist/config.json
 /WallpaperGuardian.spec
 /Update.spec
+/dist/

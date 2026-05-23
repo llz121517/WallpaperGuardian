@@ -1,20 +1,20 @@
 # 主程序依赖
-altgraph
-importlib-metadata
-packaging
-pefile
-pyinstaller
-pyinstaller-hooks-contrib
-pywin32
-pywin32-ctypes
-zipp
+altgraph>=0.17.4,<1.0
+importlib-metadata>=4.8.0
+packaging>=21.0
+pefile>=2023.2.7,<2025.0
+pyinstaller>=5.13.2,<7.0
+pyinstaller-hooks-contrib>=2023.7
+pywin32>=306,<307
+pywin32-ctypes>=0.2.2,<1.0
+zipp>=3.19.1
 
 # 服务端依赖
-fastapi
-uvicorn
-python-multipart
-pydantic
+fastapi>=0.104.1,<1.0
+uvicorn>=0.24.0,<1.0
+python-multipart>=0.0.6,<1.0
+pydantic>=1.10.13,<3.0
 
 # 共同依赖
-typing_extensions
+typing_extensions>=4.8.0
 
