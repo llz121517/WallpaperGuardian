@@ -299,9 +299,17 @@ def main():
     log.info("=" * 50)
     log.info("WallpaperGuardian 主程序启动")
     log.info("=" * 50)
-    
-    original = resource_path('resources/wallpaper.jpg')
+
+    exe_dir = get_exe_dir()
+    wallpaper_dir = os.path.join(exe_dir, 'wallpaper')
+    os.makedirs(wallpaper_dir, exist_ok=True)
+    original = os.path.join(wallpaper_dir, 'wallpaper.jpg')
     log.debug(f"目标壁纸路径: {original}")
+
+    if not os.path.exists(original):
+        log.error("未找到壁纸文件")
+        ctypes.windll.user32.MessageBoxW(0, f"未在{original}找到壁纸文件，将退出。\n请放入文件名为”wallpaper.jpg“的壁纸后再试", "Wallpaper Guardian", 0x40)
+        sys.exit(-1)
 
     if not set_autostart():
         log.warn("自启动设置失败")

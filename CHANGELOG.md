@@ -1,14 +1,20 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-This changelog follows the [Keep a Changelog](https://keepachangelog.com/) standard.
-
 所有重要变更将记录在此文件中。
 本 changelog 遵循 [Keep a Changelog](https://keepachangelog.com/) 标准。
 
 **版本号策略**：
 - v1.1.1 及之前：使用语义化版本号（SemVer）
 - v1.2.0 及之后：使用 大版本.小版本.补丁 格式
+
+---
+
+### 2026.6.7
+- 修改壁纸存储路径从 resources 目录到 wallpaper 目录
+- 添加壁纸文件存在性检查，启动时验证 wallpaper.jpg 是否存在
+- 当壁纸文件缺失时显示错误提示并退出程序
+- 更新 README 中的壁纸路径说明和打包命令
+- 移除已弃用的技术亮点章节内容
 
 ---
 

@@ -8,27 +8,18 @@
 
 ![](resources/wallpaper.jpg)
 
-• 默认壁纸
+• [壁纸出处](https://www.pixiv.net/artworks/72916889)
 
 
 ## ✨ 功能特性
-### 核心功能
-- 🖼️ 壁纸自动守护：定时检测壁纸变更，自动还原预设壁纸
-- 🔄 远程自动更新：独立更新进程，无感升级主程序
-- 🚀 开机自启：注册表静默配置，无需手动设置
-- 🔒 单实例锁：互斥进程保护，防止重复运行
-- 🧘 后台静默运行：无窗口、无弹窗，常驻后台
+- 壁纸自动守护：定时检测壁纸变更，自动还原预设壁纸
+- 远程自动更新：独立更新进程，无感升级主程序
+- 开机自启：注册表静默配置，无需手动设置
+- 单实例锁：互斥进程保护，防止重复运行
+- 后台静默运行：无窗口、无弹窗，常驻后台
 
-### 进阶能力
-- 📦 单文件打包：免 Python 环境，直接双击运行
-- 🔁 壁纸设置重试：失败自动重试，提升稳定性
-- ⚙️ 自动生成配置：首次运行创建 `config.json`
-- 📝 轻量自定义日志：分级输出、按天分割、自动清理
-- 🛡️ 进程隔离：更新程序与主程序完全解耦
-
-> ### 注
 > 无法肘击非正版Win7定期将壁纸修改为黑色的机制（反盗版机制）
-> 因为工具无法修改纯色
+> 因为无法修改纯色
 
 ## 💻 系统要求
 - 系统：Windows 7 / 8 / 10 / 11
@@ -66,7 +57,8 @@ wallpaper_guard/
 ├── update.py          # 更新程序入口
 ├── requirements.txt   # 依赖列表
 ├── config.json        # 自动生成配置
-├── resources/         # 默认壁纸资源
+├── resources/         # 默认壁纸资源 已弃
+├── wallpaper/         # 2026.6.7 已将壁纸目录移至此处
 ├── dist/              # 打包输出
 ├── build/             # 打包临时文件
 └── uninstall.bat      # 卸载脚本
@@ -75,7 +67,7 @@ wallpaper_guard/
 ## 🔨 打包命令
 主程序：
 ```bash
-pyinstaller --onefile --windowed --name=WallpaperGuardian --add-data "resources;resources" main.py
+pyinstaller --onefile --windowed --name=WallpaperGuardian main.py
 ```
 更新程序：
 ```bash
@@ -97,7 +89,7 @@ pyinstaller --onefile --windowed --name=Update update.py
 如需重置配置，直接删除文件重启即可自动重建。
 
 ## 🧩 使用说明
-- 更换壁纸：替换 `resources/wallpaper.jpg` 后重新打包
+- 更换壁纸：在 /wallpaper/ 目录下覆盖 `wallpaper.jpg`
 - 停止程序：任务管理器结束对应进程，或使用`uninstall.bat`杀死
 - 卸载：运行 `uninstall.bat`，会自动杀死进程、清理注册表，随后需手动删除程序文件
 
@@ -110,13 +102,6 @@ pyinstaller --onefile --windowed --name=Update update.py
 
 服务端支持返回新版本地址、版本号或仅退出指令，适配自建更新服务。
 
-## 🛠️ 技术亮点
-- 基于 Windows 互斥锁实现单实例
-- Ctypes 调用系统 API 设置/读取壁纸
-- Subprocess 管道捕获子进程日志，统一转发
-- 自定义轻量日志：分级打印、按天分文件、自动清旧日志
-- 自动区分开发/打包环境，路径与日志目录自适应
-
 ## ⚠️ 注意事项
 - 守护期间会强制还原壁纸，临时更换请先退出程序
 - 安全软件若拦截注册表/网络请求，建议加入信任列表
@@ -128,6 +113,13 @@ pyinstaller --onefile --windowed --name=Update update.py
 - 更新失败：检查网络、服务地址配置与防火墙拦截
 
 ## 📋 更新日志
+### 2026.6.7
+- 修改壁纸存储路径从 resources 目录到 wallpaper 目录
+- 添加壁纸文件存在性检查，启动时验证 wallpaper.jpg 是否存在
+- 当壁纸文件缺失时显示错误提示并退出程序
+- 更新 README 中的壁纸路径说明和打包命令
+- 移除已弃用的技术亮点章节内容
+
 ### v1.3.0
 - 日志系统重构，替换原生 logging 为自定义轻量日志
 - 精简代码、降低资源占用与磁盘 I/O
